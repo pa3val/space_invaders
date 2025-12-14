@@ -1,11 +1,11 @@
 #pragma once
-#include "input_manager.hpp"
-#include "renderer.hpp"
+#include "constants.hpp"
 class GameState
 {
 public:
   GameState() { };
-  virtual void handleInput(InputManager::Input input) { };
+  virtual ~GameState() = default;
+  virtual void handleInput(Input input) { };
   virtual void update() { };
-  virtual void draw(const Renderer& renderer) { };
+  virtual void draw() { };
 };

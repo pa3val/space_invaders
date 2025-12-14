@@ -4,8 +4,7 @@ GameManager::GameManager()
 {
   initScreen();
   initColors();
-  renderer = Renderer(stdscr);
-  state    = LevelState();
+  state_    = std::make_unique<MenuState>();
 }
 
 void GameManager::initScreen()
@@ -19,24 +18,42 @@ void GameManager::initScreen()
 
 void GameManager::initColors()
 {
-  init_pair(1, COLOR_BLACK, COLOR_GREEN);
-  init_pair(1, COLOR_BLACK, COLOR_RED);
-  init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(1, COLOR_GREEN, COLOR_BLACK);
+  init_pair(2, COLOR_RED, COLOR_BLACK);
+  init_pair(3, COLOR_BLACK, COLOR_YELLOW);
+  init_pair(4, COLOR_WHITE, COLOR_BLACK);
+  init_pair(5, COLOR_BLACK, COLOR_WHITE);
 }
 
 void GameManager::runGame()
 {
-  using Input = InputManager::Input;
-
-  while (true)
+  while (SignalManager::getSignal() != Signals::EXIT)
   {
-    Input input = input_manager.getInputState();
-    state.handleInput(input);
-    state.update();
+    handleSignal();
+    Input input = InputManager::getInputState();
+    state_->handleInput(input);
+    state_->update();
+    Renderer::clear_screen();
+    state_->draw();
+    Renderer::refresh_screen();
+    Renderer::wait(50);
+  }
+  Renderer::exit_screen();
+}
 
-    renderer.clear_screen();
-    state.draw(renderer);
-    renderer.refresh_screen();
-    renderer.wait(50);
+void GameManager::handleSignal()
+{
+  switch (SignalManager::getSignal())
+  {
+  case Signals::CHANGE_TO_LEVEL:
+    state_ = std::make_unique<LevelState>();
+    SignalManager::setSignal(Signals::NONE);
+    break;
+  case Signals::CHANGE_TO_MENU:
+    state_ = std::make_unique<MenuState>();
+    SignalManager::setSignal(Signals::NONE);
+    break;
+  default:
+    break;
   }
 }

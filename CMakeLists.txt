@@ -11,7 +11,9 @@ add_executable(space_inviders
  entities/shooter.cpp
  managers/input_manager.cpp
  game_states/level_state.cpp
- managers/renderer.cpp)
+ managers/renderer.cpp
+ managers/signal_manager.cpp
+ game_states/menu_state.cpp)
 
 find_package(Curses REQUIRED)
 

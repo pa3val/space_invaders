@@ -3,8 +3,9 @@
 #include "collision_manager.hpp"
 #include "constants.hpp"
 #include "game_state.hpp"
-#include "input_manager.hpp"
 #include "player.hpp"
+#include "signal_manager.hpp"
+#include "renderer.hpp"
 
 #include <memory>
 #include <vector>
@@ -18,8 +19,8 @@ private:
 
 public:
   LevelState();
-  void handleInput(InputManager::Input input) override;
+  void handleInput(Input input) override;
   void update() override { };
-  void draw(const Renderer& renderer) override;
-  void drawField(const Renderer& renderer);
+  void draw() override;
+  void drawField();
 };

@@ -5,14 +5,11 @@
 
 class Renderer
 {
-private:
-  WINDOW* window_ = nullptr;
-
 public:
-  Renderer() { };
-  Renderer(WINDOW* window);
-  void draw_char(int x, int y, char ch, ColorPair color_pair) const;
-  void clear_screen();
-  void refresh_screen();
-  void wait(int millis);
+  static void draw_char(int x, int y, char ch, ColorPair color_pair);
+  static void draw_text(int x, int y, const char* text, ColorPair color_pair);
+  static void clear_screen();
+  static void refresh_screen();
+  static void wait(int millis);
+  static void exit_screen();
 };

@@ -1,7 +1,5 @@
 #include "input_manager.hpp"
 
-using Input = InputManager::Input;
-
 Input InputManager::getInputState()
 {
   switch (getch())

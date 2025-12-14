@@ -3,7 +3,9 @@
 #include "game_state.hpp"
 #include "input_manager.hpp"
 #include "level_state.hpp"
+#include "menu_state.hpp"
 #include "renderer.hpp"
+#include "signal_manager.hpp"
 
 #include <memory>
 #include <ncurses.h>
@@ -11,13 +13,12 @@
 class GameManager
 {
 private:
-  Renderer     renderer;
-  InputManager input_manager;
-  LevelState   state;
+  std::unique_ptr<GameState> state_;
 
 public:
   GameManager();
   void initScreen();
   void initColors();
   void runGame();
+  void handleSignal();
 };
