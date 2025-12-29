@@ -1,12 +1,10 @@
 #include "input_manager.hpp"
-#include "renderer.hpp"
 
 #include <ncurses.h>
 
 Input InputManager::getInputState()
 {
-  // Use game window for input
-  int key = wgetch(Renderer::get_game_window());
+  int key = getch();
   if (key == ERR)
     return Input::NONE;
 
