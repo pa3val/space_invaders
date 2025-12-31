@@ -2,8 +2,8 @@
 
 Entity::Entity()
 {
-  pos_x_  = WIDTH / 2;
-  pos_y_  = HEIGHT - BORDER_SIZE - height_;
+  pos_x_ = 0;
+  pos_y_ = 0;
 }
 
 void Entity::update(short delta_x, short delta_y)

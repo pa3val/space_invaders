@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constants.hpp"
+#include "game_over_state.hpp"
 #include "game_state.hpp"
 #include "input_manager.hpp"
 #include "level_state.hpp"
@@ -14,7 +15,7 @@
 class GameManager
 {
 private:
-  std::unique_ptr<GameState> state_;
+  std::unique_ptr<GameState> state_ = std::make_unique<LevelState>();
 
 public:
   GameManager();

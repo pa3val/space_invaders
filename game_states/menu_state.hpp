@@ -16,10 +16,11 @@ class MenuState : public GameState
 private:
   std::size_t                selected_item_  = 0;
   std::size_t                selected_level_ = 0;
-  std::array<std::string, 2> menu_text_      = {
+  std::array<std::string, 2> buttons_text_   = {
     "Start",
     "Exit"
   };
+  
   std::vector<std::string> level_files_;
 
   void getFilesInDirectory(const std::filesystem::path& path);

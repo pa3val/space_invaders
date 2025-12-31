@@ -1,5 +1,7 @@
 #include "collision_manager.hpp"
 
+#include "constants.hpp"
+
 bool CollisionManager::checkBounderCollision(const Entity& entity, short delta_x, short delta_y)
 {
   int new_pos_x = entity.getPosX() + static_cast<int>(delta_x);
@@ -8,14 +10,14 @@ bool CollisionManager::checkBounderCollision(const Entity& entity, short delta_x
   if (new_pos_x < static_cast<int>(BORDER_SIZE) && delta_x < 0)
     return true;
   else if (new_pos_x + static_cast<int>(entity.getWidth())
-               > WIDTH - static_cast<int>(BORDER_SIZE)
+               > PLAYFIELD_WIDTH - static_cast<int>(BORDER_SIZE)
            && delta_x > 0)
     return true;
 
   if (new_pos_y < static_cast<int>(BORDER_SIZE) && delta_y < 0)
     return true;
   else if (new_pos_y + static_cast<int>(entity.getHeight())
-               > HEIGHT - static_cast<int>(BORDER_SIZE)
+               > PLAYFIELD_HEIGHT - static_cast<int>(BORDER_SIZE)
            && delta_y > 0)
     return true;
 

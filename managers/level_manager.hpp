@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <memory>
+#include <sol/sol.hpp>
 #include <vector>
 
 class LevelManager
@@ -13,6 +14,7 @@ private:
   static std::string                         level_file_;
   static std::vector<std::unique_ptr<Enemy>> enemy_pool_;
   static Player                              player_;
+  static sol::state                          lua;
 
 public:
   static void readLevelFile();

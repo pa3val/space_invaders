@@ -9,10 +9,12 @@ GameManager::GameManager()
 
 void GameManager::initScreen()
 {
-  printf("\033[8;%d;%dt", HEIGHT, WIDTH);
+  printf("\033[8;%d;%dt", SCREEN_HEIGHT, SCREEN_WIDTH);
   fflush(stdout);
   initscr();
-  resize_term(HEIGHT, WIDTH);
+  resizeterm(SCREEN_HEIGHT, SCREEN_WIDTH);
+  Renderer::init_info_bar();
+  Renderer::init_playfield();
   start_color();
   nodelay(stdscr, TRUE);
   keypad(stdscr, TRUE);
@@ -39,12 +41,19 @@ void GameManager::runGame()
     Input input = InputManager::getInputState();
     state_->handleInput(input);
     state_->update();
-    Renderer::clear_screen();
+    Renderer::reset_cleared_flags();
     state_->draw();
-    Renderer::refresh_screen();
+    if ((SignalManager::getDrawFlags() & SignalManager::DrawFlags::DRAW_INFO_BAR)
+        != SignalManager::DrawFlags::DRAW_NONE)
+      Renderer::refresh_window(Renderer::WindowType::INFO_BAR);
+    if ((SignalManager::getDrawFlags() & SignalManager::DrawFlags::DRAW_PLAYFIELD)
+        != SignalManager::DrawFlags::DRAW_NONE)
+      Renderer::refresh_window(Renderer::WindowType::PLAYFIELD);
+    Renderer::update_screen();
+    SignalManager::clearDrawFlags();
     Renderer::wait(1000 / 30);
   }
-  Renderer::exit_screen();
+  Renderer::exit_game();
 }
 
 void GameManager::handleSignal()
@@ -60,7 +69,7 @@ void GameManager::handleSignal()
     SignalManager::setSignal(Signals::NONE);
     break;
   case Signals::GAME_OVER:
-    state_ = std::make_unique<MenuState>();
+    state_ = std::make_unique<GameOverState>(dynamic_cast<LevelState*>(state_.get())->getScore());
     SignalManager::setSignal(Signals::NONE);
     break;
   default:

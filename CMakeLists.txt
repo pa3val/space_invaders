@@ -20,7 +20,8 @@ add_executable(space_inviders
  managers/renderer.cpp
  managers/signal_manager.cpp
  managers/level_manager.cpp
- game_states/menu_state.cpp)
+ game_states/menu_state.cpp
+ game_states/game_over_state.cpp)
 
 find_package(Curses REQUIRED)
 find_package(Lua REQUIRED)

@@ -33,6 +33,10 @@ enum class Signals
   NONE
 };
 
-constexpr int HEIGHT                 = 30,
-              WIDTH                  = 80;
+constexpr int SCREEN_HEIGHT          = 30,
+              SCREEN_WIDTH           = 80,
+              INFO_BAR_HEIGHT        = 4,
+              INFO_BAR_WIDTH         = SCREEN_WIDTH,
+              PLAYFIELD_HEIGHT       = SCREEN_HEIGHT - INFO_BAR_HEIGHT,
+              PLAYFIELD_WIDTH        = SCREEN_WIDTH;
 constexpr unsigned short BORDER_SIZE = 1;

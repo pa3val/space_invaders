@@ -1,10 +1,10 @@
 #P - player
-#E - enemy
+#E - basic enemy
 #. - empty
 #* - border
 
-HEIGHT = 30
-WIDTH = 80
+HEIGHT = 26
+WIDTH = 78
 BORDER_SIZE = 1
 ENTITY_WIDTH = 4
 ENTITY_HEIGHT = 3

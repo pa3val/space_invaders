@@ -2,6 +2,7 @@
 #include "constants.hpp"
 class GameState
 {
+
 public:
   GameState() { };
   virtual ~GameState() = default;

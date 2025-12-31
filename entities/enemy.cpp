@@ -12,27 +12,22 @@ Enemy::Enemy()
   setWidth(appearance[0].size());
   setHeight(appearance.size());
   setHealth(1);
+  setScore(0);
 }
 
-Enemy::Enemy(int pos_x, int pos_y)
+Enemy::Enemy(
+    int                                   pos_x,
+    int                                   pos_y,
+    int                                   health,
+    unsigned long                         score,
+    const std::vector<std::vector<char>>& appearance)
     : Entity()
 {
-  const std::vector<std::vector<char>> appearance = {
-    { ' ', '/', '\\', ' ' },
-    { '<', 'O', 'O', '>' },
-    { ' ', '\\', '/', ' ' }
-  };
   setAppearance(appearance);
   setWidth(appearance[0].size());
   setHeight(appearance.size());
-  setHealth(1);
+  setHealth(health);
+  setScore(score);
   setPosX(pos_x);
   setPosY(pos_y);
-}
-void Enemy::takeDamage(unsigned int damage)
-{
-  if (getHealth() <= damage)
-    setHealth(0);
-  else
-    setHealth(getHealth() - damage);
 }
