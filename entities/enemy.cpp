@@ -1,7 +1,7 @@
 #include "enemy.hpp"
 
 Enemy::Enemy()
-    : Entity()
+    : Shooter()
 {
   const std::vector<std::vector<char>> appearance = {
     { ' ', '/', '\\', ' ' },
@@ -15,19 +15,18 @@ Enemy::Enemy()
   setScore(0);
 }
 
-Enemy::Enemy(
-    int                                   pos_x,
-    int                                   pos_y,
-    int                                   health,
-    unsigned long                         score,
-    const std::vector<std::vector<char>>& appearance)
-    : Entity()
+std::unique_ptr<Bullet> Enemy::shoot()
 {
-  setAppearance(appearance);
-  setWidth(appearance[0].size());
-  setHeight(appearance.size());
-  setHealth(health);
-  setScore(score);
-  setPosX(pos_x);
-  setPosY(pos_y);
+  if (canShoot())
+  {
+    // incrementCurrentBullets();
+    resetReloadFrameDelay();
+    return std::make_unique<Bullet>(
+        getPosX() + getWidth() / 2,
+        getPosY() + getHeight(),
+        1,
+        "ENEMY_BULLET_COLOR",
+        getBulletAppearance());
+  }
+  return nullptr;
 }

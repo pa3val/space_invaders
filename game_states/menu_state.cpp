@@ -20,15 +20,15 @@ void MenuState::getFilesInDirectory(const std::filesystem::path& path)
 void MenuState::draw()
 {
   std::string space_inviders = "SPACE INVIDERS";
-  Renderer::draw_text(INFO_BAR_WIDTH / 2 - space_inviders.length() / 2, 1, space_inviders, ColorPair::SELECTED_TEXT_COLOR, Renderer::WindowType::INFO_BAR);
+  Renderer::drawText(INFO_BAR_WIDTH / 2 - space_inviders.length() / 2, 1, space_inviders, "SELECTED_TEXT_COLOR", Renderer::WindowType::INFO_BAR);
   for (std::size_t i = 0; i < buttons_text_.size(); ++i)
   {
     if (i == selected_item_)
-      Renderer::draw_text(PLAYFIELD_WIDTH / 2 - buttons_text_[selected_item_].length() / 2, selected_item_ + PLAYFIELD_HEIGHT / 2, buttons_text_[selected_item_], ColorPair::SELECTED_TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+      Renderer::drawText(PLAYFIELD_WIDTH / 2 - buttons_text_[selected_item_].length() / 2, selected_item_ + PLAYFIELD_HEIGHT / 2, buttons_text_[selected_item_], "SELECTED_TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
     else
-      Renderer::draw_text(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], ColorPair::TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+      Renderer::drawText(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], "TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
   }
-  Renderer::draw_text(PLAYFIELD_WIDTH / 2 + buttons_text_[0].length() / 2 + 3, PLAYFIELD_HEIGHT / 2, '<' + level_files_[selected_level_] + '>', ColorPair::TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+  Renderer::drawText(PLAYFIELD_WIDTH / 2 + buttons_text_[0].length() / 2 + 3, PLAYFIELD_HEIGHT / 2, '<' + level_files_[selected_level_] + '>', "TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
 }
 
 void MenuState::handleInput(Input input)

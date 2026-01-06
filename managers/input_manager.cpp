@@ -1,6 +1,6 @@
 #include "input_manager.hpp"
 
-#include <ncurses.h>
+#include <curses.h>
 
 Input InputManager::getInputState()
 {
@@ -24,7 +24,8 @@ Input InputManager::getInputState()
     return Input::FIRE;
   case 27:
     return Input::EXIT;
-  case '\n':
+  case '\n': 
+  case '\r':
     return Input::SELECT;
   default:
     return Input::NONE;

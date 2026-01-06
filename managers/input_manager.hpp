@@ -1,7 +1,7 @@
 #pragma once
 #include "constants.hpp"
 
-#include <ncurses.h>
+#include <curses.h>
 
 class InputManager
 {

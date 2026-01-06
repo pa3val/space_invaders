@@ -1,5 +1,4 @@
 #pragma once
-#include <ncurses.h>
 
 enum class ColorPair
 {

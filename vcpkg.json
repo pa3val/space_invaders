@@ -1,0 +1,17 @@
+{
+  "name": "space-inviders",
+  "version": "0.1.0",
+  "dependencies": [
+    "lua",
+    "sol2",
+    "pdcurses",
+    "miniaudio"
+  ],
+  "builtin-baseline": "af752f21c9d79ba3df9cb0250ce2233933f58486",
+  "overrides": [
+    {
+      "name": "lua",
+      "version": "5.4.6"
+    }
+  ]
+}

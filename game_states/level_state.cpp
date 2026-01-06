@@ -1,23 +1,14 @@
 #include "level_state.hpp"
 
-#include "game_state.hpp"
-#include "renderer.hpp"
-
 LevelState::LevelState()
 {
-  lua.open_libraries(sol::lib::base, sol::lib::package);
   LevelManager::readLevelFile();
-  setupLevel(LevelManager::getLevelFile());
-  enemy_pool_ = LevelManager::takeEnemyPool();
-  player_     = LevelManager::takePlayer();
+  enemy_pool_         = LevelManager::takeEnemyPool();
+  player_             = LevelManager::takePlayer();
+  enemy_shoot_chance_ = LevelManager::getShootChance();
   draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
   draw_flags_ |= SignalManager::DrawFlags::DRAW_INFO_BAR;
-}
-
-void LevelState::setupLevel(const std::string& level_file)
-{
-  lua.script_file("config.lua");
-  enemy_movement_delay_ = lua["global_states"]["enemy_delay"].get<unsigned short>();
+  AudioManager::playBackgroundMusic();
 }
 
 void LevelState::handleInput(Input input)
@@ -32,15 +23,12 @@ void LevelState::handleInput(Input input)
   case Input::MOVE_LEFT:
     delta_x = -1;
     break;
-  case Input::MOVE_UP:
-    delta_y = -1;
-    break;
-  case Input::MOVE_DOWN:
-    delta_y = 1;
-    break;
   case Input::FIRE:
     if (auto bullet = player_.shoot())
+    {
       bullet_pool_.push_back(std::move(bullet));
+      AudioManager::playSound("PLAYER_SHOOT_SOUND");
+    }
     break;
   case Input::EXIT:
     SignalManager::setSignal(Signals::CHANGE_TO_MENU);
@@ -57,10 +45,11 @@ void LevelState::handleInput(Input input)
 
 void LevelState::update()
 {
-  if (enemy_pool_.empty())
+  player_.updateReloadFrameDelay();
+  for (auto& enemy : enemy_pool_)
   {
-    SignalManager::setSignal(Signals::GAME_OVER);
-    return;
+    enemy->updateReloadFrameDelay();
+    enemy->updateCurrentEnemyMovementDelay();
   }
 
   for (auto& enemy : enemy_pool_)
@@ -83,6 +72,19 @@ void LevelState::update()
         break;
       }
     }
+
+    if ((*bullet) && CollisionManager::checkCollision(**bullet, player_))
+    {
+      player_.takeDamage((*bullet)->getDamage());
+      if (!player_.isAlive())
+      {
+        SignalManager::setSignal(Signals::GAME_OVER);
+        return;
+      }
+      bullet->reset();
+      draw_flags_ |= SignalManager::DrawFlags::DRAW_INFO_BAR;
+      break;
+    }
     ++bullet;
   }
 
@@ -95,7 +97,8 @@ void LevelState::update()
               draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
               return true;
             }
-            return bullet->getPosY() < static_cast<int>(BORDER_SIZE);
+            return (bullet->getPosY() < static_cast<int>(BORDER_SIZE)
+                    || bullet->getPosY() > static_cast<int>(PLAYFIELD_HEIGHT - BORDER_SIZE));
           }),
       bullet_pool_.end());
 
@@ -108,31 +111,69 @@ void LevelState::update()
               score_ += enemy->getScore();
               draw_flags_ |= SignalManager::DrawFlags::DRAW_INFO_BAR;
               draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
-
               return true;
             }
             return false;
           }),
       enemy_pool_.end());
 
+  if (enemy_pool_.empty())
+  {
+    SignalManager::setSignal(Signals::GAME_OVER);
+    return;
+  }
+
+  moveEnemies();
+  shootEnemies();
+
   for (auto& bullet : bullet_pool_)
   {
     bullet->update();
-    draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
   }
-  moveEnemies();
+  if (!bullet_pool_.empty())
+    draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
 }
 
 void LevelState::moveEnemies()
 {
-  ++current_enemy_movement_delay_;
-  if (current_enemy_movement_delay_ >= enemy_movement_delay_)
+  if (enemy_pool_.empty())
+    return;
+  short delta_y     = 0;
+  bool  is_collided = false;
+  if ((*enemy_pool_.begin())->getCurrentEnemyMovementDelay() == 0)
   {
-    current_enemy_movement_delay_ = 0;
     for (auto& enemy : enemy_pool_)
     {
-      enemy->update(0, 1);
-      draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
+      if (CollisionManager::checkBounderCollision(*enemy, enemy_direction_x_, 0))
+      {
+        is_collided = true;
+        break;
+      }
+    }
+    if (is_collided)
+    {
+      enemy_direction_x_ = -enemy_direction_x_;
+      delta_y            = 1;
+    }
+    for (auto& enemy : enemy_pool_)
+    {
+      enemy->update(enemy_direction_x_, delta_y);
+      enemy->resetCurrentEnemyMovementDelay();
+    }
+    draw_flags_ |= SignalManager::DrawFlags::DRAW_PLAYFIELD;
+  }
+}
+
+void LevelState::shootEnemies()
+{
+  if (enemy_pool_.empty())
+    return;
+  for (auto& enemy : enemy_pool_)
+  {
+    if (chance(rng_) <= enemy_shoot_chance_ && enemy->canShoot())
+    {
+      bullet_pool_.push_back(enemy->shoot());
+      AudioManager::playSound("ENEMY_SHOOT_SOUND");
     }
   }
 }
@@ -141,14 +182,14 @@ void LevelState::draw()
 {
   if ((draw_flags_ & SignalManager::DrawFlags::DRAW_PLAYFIELD) != SignalManager::DrawFlags::DRAW_NONE)
   {
-    Renderer::draw_entity(player_, ColorPair::PLAYER_COLOR, Renderer::WindowType::PLAYFIELD);
+    Renderer::drawEntity(player_, "PLAYER_COLOR", Renderer::WindowType::PLAYFIELD);
     drawBullets();
     drawEnemies();
   }
   if ((draw_flags_ & SignalManager::DrawFlags::DRAW_INFO_BAR) != SignalManager::DrawFlags::DRAW_NONE)
   {
-    Renderer::draw_text(1, 1, "Score: " + std::to_string(score_), ColorPair::TEXT_COLOR, Renderer::WindowType::INFO_BAR);
-    Renderer::draw_text(1, 2, "Health: " + std::to_string(player_.getHealth()), ColorPair::TEXT_COLOR, Renderer::WindowType::INFO_BAR);
+    Renderer::drawText(1, 1, "Score: " + std::to_string(score_), "TEXT_COLOR", Renderer::WindowType::INFO_BAR);
+    Renderer::drawText(1, 2, "Health: " + std::to_string(player_.getHealth()), "TEXT_COLOR", Renderer::WindowType::INFO_BAR);
   }
   draw_flags_ = SignalManager::DrawFlags::DRAW_NONE;
 }
@@ -157,7 +198,8 @@ void LevelState::drawBullets()
 {
   for (auto& bullet : bullet_pool_)
   {
-    Renderer::draw_entity(*bullet, ColorPair::BULLET_COLOR, Renderer::WindowType::PLAYFIELD);
+    if (bullet)
+      Renderer::drawEntity(*bullet, bullet->getColorName(), Renderer::WindowType::PLAYFIELD);
   }
 }
 
@@ -165,6 +207,7 @@ void LevelState::drawEnemies()
 {
   for (auto& enemy : enemy_pool_)
   {
-    Renderer::draw_entity(*enemy, ColorPair::ENEMY_COLOR, Renderer::WindowType::PLAYFIELD);
+    if (enemy)
+      Renderer::drawEntity(*enemy, "ALIEN_COLOR", Renderer::WindowType::PLAYFIELD);
   }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "audio_manager.hpp"
 #include "constants.hpp"
 #include "game_over_state.hpp"
 #include "game_state.hpp"
@@ -9,8 +10,8 @@
 #include "renderer.hpp"
 #include "signal_manager.hpp"
 
+#include <curses.h>
 #include <memory>
-#include <ncurses.h>
 
 class GameManager
 {
@@ -19,8 +20,6 @@ private:
 
 public:
   GameManager();
-  void initScreen();
-  void initColors();
   void runGame();
   void handleSignal();
 };

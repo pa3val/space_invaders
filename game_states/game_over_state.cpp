@@ -35,27 +35,27 @@ void GameOverState::handleInput(Input input)
 void GameOverState::draw()
 {
   std::string game_over_text = "GAME OVER";
-  Renderer::draw_text(
+  Renderer::drawText(
       INFO_BAR_WIDTH / 2 - game_over_text.length() / 2,
       1,
       game_over_text,
-      ColorPair::SELECTED_TEXT_COLOR,
+      "SELECTED_TEXT_COLOR",
       Renderer::WindowType::INFO_BAR);
   std::string score_text = "Score: " + std::to_string(score_);
-  Renderer::draw_text(
+  Renderer::drawText(
       PLAYFIELD_WIDTH / 2 - score_text.length() / 2,
       1,
       score_text,
-      ColorPair::TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+      "TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
   for (std::size_t i = 0; i < buttons_text_.size(); ++i)
   {
     if (i == selected_item_)
     {
-      Renderer::draw_text(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], ColorPair::SELECTED_TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+      Renderer::drawText(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], "SELECTED_TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
     }
     else
     {
-      Renderer::draw_text(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], ColorPair::TEXT_COLOR, Renderer::WindowType::PLAYFIELD);
+      Renderer::drawText(PLAYFIELD_WIDTH / 2 - buttons_text_[i].length() / 2, i + PLAYFIELD_HEIGHT / 2, buttons_text_[i], "TEXT_COLOR", Renderer::WindowType::PLAYFIELD);
     }
   }
 }

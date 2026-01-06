@@ -9,6 +9,6 @@ class Player : public Shooter, public Damageable
 {
 public:
   Player();
-  Player(int pos_x, int pos_y, int health, const std::vector<std::vector<char>>& appearance);
+  virtual ~Player() = default;
   std::unique_ptr<Bullet> shoot() override;
 };

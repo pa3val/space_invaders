@@ -14,7 +14,12 @@ private:
   static std::string                         level_file_;
   static std::vector<std::unique_ptr<Enemy>> enemy_pool_;
   static Player                              player_;
-  static sol::state                          lua;
+  static Enemy                               enemy_;
+  static int                                 enemy_shoot_chance_;
+  static sol::state                          lua_;
+
+  static void setupPlayer();
+  static void setupEnemy();
 
 public:
   static void readLevelFile();
@@ -26,4 +31,5 @@ public:
   static std::string                         getLevelFile() { return level_file_; }
   static std::vector<std::unique_ptr<Enemy>> takeEnemyPool() { return std::move(enemy_pool_); }
   static Player                              takePlayer() { return player_; }
+  static int                                 getShootChance() { return enemy_shoot_chance_; }
 };

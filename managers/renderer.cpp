@@ -1,27 +1,74 @@
 #include "renderer.hpp"
 
-WINDOW* Renderer::playfield            = nullptr;
-WINDOW* Renderer::info_bar             = nullptr;
-bool    Renderer::is_playfield_cleared = false;
-bool    Renderer::is_info_bar_cleared  = false;
+WINDOW*                               Renderer::playfield            = nullptr;
+WINDOW*                               Renderer::info_bar             = nullptr;
+bool                                  Renderer::is_playfield_cleared = false;
+bool                                  Renderer::is_info_bar_cleared  = false;
+std::map<std::string, unsigned short> Renderer::color_map_           = {};
 
-void Renderer::init_playfield()
+void Renderer::initScreen()
+{
+  HWND hwnd = GetConsoleWindow();
+  if (hwnd != NULL)
+  {
+    LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+    style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+    SetWindowLongPtr(hwnd, GWL_STYLE, style);
+
+    SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  }
+
+  printf("\033[8;%d;%dt", SCREEN_HEIGHT, SCREEN_WIDTH);
+  fflush(stdout);
+  initscr();
+  resize_term(SCREEN_HEIGHT, SCREEN_WIDTH);
+  Renderer::initInfoBar();
+  Renderer::initPlayfield();
+  start_color();
+  nodelay(stdscr, TRUE);
+  keypad(stdscr, TRUE);
+  curs_set(0);
+  raw();
+  noecho();
+}
+void Renderer::initPlayfield()
 {
   playfield = newwin(PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, INFO_BAR_HEIGHT, 0);
 }
 
-void Renderer::init_info_bar()
+void Renderer::initInfoBar()
 {
   info_bar = newwin(INFO_BAR_HEIGHT, INFO_BAR_WIDTH, 0, 0);
 }
 
-void Renderer::reset_cleared_flags()
+void Renderer::initColorMap()
+{
+  sol::state lua;
+  lua.open_libraries(sol::lib::base, sol::lib::package);
+  lua.script_file("global_config.lua");
+  sol::table     colors            = lua["colors"];
+  unsigned short color_pair_number = 1;
+  for (auto& [key, value] : colors)
+  {
+    RGBColor color = parseColorHex(value.as<std::string>());
+    init_color(color_pair_number, color.red, color.green, color.blue);
+    if (key.as<std::string>() == "SELECTED_TEXT_COLOR")
+      init_pair(color_pair_number, COLOR_BLACK, color_pair_number);
+    else
+      init_pair(color_pair_number, color_pair_number, COLOR_BLACK);
+    color_map_[key.as<std::string>()] = color_pair_number;
+    ++color_pair_number;
+  }
+}
+
+void Renderer::resetFlags()
 {
   is_playfield_cleared = false;
   is_info_bar_cleared  = false;
 }
 
-WINDOW* Renderer::get_window(WindowType window_type)
+WINDOW* Renderer::getWindow(WindowType window_type)
 {
   switch (window_type)
   {
@@ -44,34 +91,34 @@ WINDOW* Renderer::get_window(WindowType window_type)
   }
   return nullptr;
 }
-void Renderer::draw_char(int x, int y, char ch, ColorPair color_pair, WindowType window_type)
+void Renderer::drawChar(int x, int y, char ch, const std::string& color_name, WindowType window_type)
 {
-  WINDOW* window = get_window(window_type);
+  WINDOW* window = getWindow(window_type);
   if (!window)
     return;
-  int color = static_cast<int>(color_pair);
+  int color = getColor(color_name);
   wattron(window, COLOR_PAIR(color));
   mvwaddch(window, y, x, ch);
   wattroff(window, COLOR_PAIR(color));
 }
 
-void Renderer::draw_text(int x, int y, const std::string& text, ColorPair color_pair, WindowType window_type)
+void Renderer::drawText(int x, int y, const std::string& text, const std::string& color_name, WindowType window_type)
 {
-  WINDOW* window = get_window(window_type);
+  WINDOW* window = getWindow(window_type);
   if (!window)
     return;
-  int color = static_cast<int>(color_pair);
+  int color = getColor(color_name);
   wattron(window, COLOR_PAIR(color));
   mvwprintw(window, y, x, "%s", text.c_str());
   wattroff(window, COLOR_PAIR(color));
 }
 
-void Renderer::draw_entity(const Entity& entity, ColorPair color_pair, WindowType window_type)
+void Renderer::drawEntity(const Entity& entity, const std::string& color_name, WindowType window_type)
 {
-  WINDOW* window = get_window(window_type);
+  WINDOW* window = getWindow(window_type);
   if (!window)
     return;
-  int color = static_cast<int>(color_pair);
+  int color = getColor(color_name);
   wattron(window, COLOR_PAIR(color));
 
   for (int i = 0; i < entity.getHeight(); ++i)
@@ -88,23 +135,24 @@ void Renderer::draw_entity(const Entity& entity, ColorPair color_pair, WindowTyp
   wattroff(window, COLOR_PAIR(color));
 }
 
-void Renderer::refresh_window(WindowType window_type)
+void Renderer::refreshWindow(WindowType window_type)
 {
   WINDOW* window = (window_type == WindowType::PLAYFIELD) ? playfield : info_bar;
   if (!window)
     return;
-  wattron(window, COLOR_PAIR(ColorPair::BORDER_COLOR));
+  int color = getColor("BORDER_COLOR");
+  wattron(window, COLOR_PAIR(color));
   box(window, 0, 0);
-  wattroff(window, COLOR_PAIR(ColorPair::BORDER_COLOR));
+  wattroff(window, COLOR_PAIR(color));
   wnoutrefresh(window);
 }
 
-void Renderer::update_screen()
+void Renderer::updateScreen()
 {
   doupdate();
 }
 
-void Renderer::clear_window(WindowType window_type)
+void Renderer::clearWindow(WindowType window_type)
 {
   WINDOW* window = (window_type == WindowType::PLAYFIELD) ? playfield : info_bar;
   if (!window)
@@ -117,13 +165,13 @@ void Renderer::wait(int millis)
   napms(millis);
 }
 
-void Renderer::destroy_window(WindowType window_type)
+void Renderer::destroyWindow(WindowType window_type)
 {
   WINDOW* window = (window_type == WindowType::PLAYFIELD) ? playfield : info_bar;
   if (!window)
     return;
   werase(window);
-  refresh_window(window_type);
+  refreshWindow(window_type);
   delwin(window);
   switch (window_type)
   {
@@ -136,10 +184,21 @@ void Renderer::destroy_window(WindowType window_type)
   }
 }
 
-void Renderer::exit_game()
+void Renderer::exitGame()
 {
-  destroy_window(WindowType::PLAYFIELD);
-  destroy_window(WindowType::INFO_BAR);
+  destroyWindow(WindowType::PLAYFIELD);
+  destroyWindow(WindowType::INFO_BAR);
   curs_set(1);
   endwin();
+}
+
+Renderer::RGBColor Renderer::parseColorHex(std::string color_hex)
+{
+  RGBColor color;
+  if (color_hex[0] == '#')
+    color_hex.erase(0, 1);
+  color.red   = std::stoi(color_hex.substr(0, 2), nullptr, 16) * 1000 / 255;
+  color.green = std::stoi(color_hex.substr(2, 2), nullptr, 16) * 1000 / 255;
+  color.blue  = std::stoi(color_hex.substr(4, 2), nullptr, 16) * 1000 / 255;
+  return color;
 }

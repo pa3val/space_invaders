@@ -1,4 +1,5 @@
 #pragma once
+#include "audio_manager.hpp"
 #include "bullet.hpp"
 #include "collision_manager.hpp"
 #include "constants.hpp"
@@ -12,27 +13,28 @@
 #include <algorithm>
 #include <filesystem>
 #include <memory>
-#include <sol/sol.hpp>
+#include <random>
 #include <vector>
 
 class LevelState : public GameState
 {
 private:
-  sol::state                           lua;
-  std::vector<std::unique_ptr<Bullet>> bullet_pool_;
-  std::vector<std::unique_ptr<Enemy>>  enemy_pool_;
-  Player                               player_;
-  unsigned short                       enemy_movement_delay_         = 50;
-  unsigned short                       current_enemy_movement_delay_ = 0;
-  unsigned long                        score_                        = 0;
-  SignalManager::DrawFlags             draw_flags_                   = SignalManager::DrawFlags::DRAW_NONE;
+  std::vector<std::unique_ptr<Bullet>>  bullet_pool_;
+  std::vector<std::unique_ptr<Enemy>>   enemy_pool_;
+  Player                                player_;
+  short                                 enemy_direction_x_  = 1;
+  unsigned long                         score_              = 0;
+  int                                   enemy_shoot_chance_ = 5;
+  SignalManager::DrawFlags              draw_flags_         = SignalManager::DrawFlags::DRAW_NONE;
+  std::mt19937                          rng_ { std::random_device {}() };
+  std::uniform_int_distribution<size_t> chance { 0, 100 };
 
 public:
   LevelState();
-  void          setupLevel(const std::string& level_file);
   void          handleInput(Input input) override;
   void          update() override;
   void          moveEnemies();
+  void          shootEnemies();
   void          draw() override;
   void          drawBullets();
   void          drawEnemies();

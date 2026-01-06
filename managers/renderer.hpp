@@ -3,16 +3,26 @@
 #include "entity.hpp"
 #include "signal_manager.hpp"
 
-#include <ncurses.h>
+#include <curses.h>
+#include <map>
+#include <sol/sol.hpp>
 #include <string>
+#include <windows.h>
 
 class Renderer
 {
 private:
-  static WINDOW* playfield;
-  static WINDOW* info_bar;
-  static bool    is_playfield_cleared;
-  static bool    is_info_bar_cleared;
+  static WINDOW*                               playfield;
+  static WINDOW*                               info_bar;
+  static bool                                  is_playfield_cleared;
+  static bool                                  is_info_bar_cleared;
+  static std::map<std::string, unsigned short> color_map_;
+  struct RGBColor
+  {
+    unsigned int red;
+    unsigned int green;
+    unsigned int blue;
+  };
 
 public:
   enum class WindowType
@@ -21,17 +31,21 @@ public:
     INFO_BAR
   };
 
-  static void    init_playfield();
-  static void    init_info_bar();
-  static void    reset_cleared_flags();
-  static void    draw_char(int x, int y, char ch, ColorPair color_pair, WindowType window_type);
-  static void    draw_text(int x, int y, const std::string& text, ColorPair color_pair, WindowType window_type);
-  static void    draw_entity(const Entity& entity, ColorPair color_pair, WindowType window_type);
-  static void    clear_window(WindowType window_type);
-  static void    refresh_window(WindowType window_type);
-  static void    update_screen();
-  static void    wait(int millis);
-  static void    destroy_window(WindowType window_type);
-  static void    exit_game();
-  static WINDOW* get_window(WindowType window_type);
+  static void           initScreen();
+  static void           initPlayfield();
+  static void           initInfoBar();
+  static void           initColorMap();
+  static void           resetFlags();
+  static void           drawChar(int x, int y, char ch, const std::string& color_name, WindowType window_type);
+  static void           drawText(int x, int y, const std::string& text, const std::string& color_name, WindowType window_type);
+  static void           drawEntity(const Entity& entity, const std::string& color_name, WindowType window_type);
+  static void           clearWindow(WindowType window_type);
+  static void           refreshWindow(WindowType window_type);
+  static void           updateScreen();
+  static void           wait(int millis);
+  static void           destroyWindow(WindowType window_type);
+  static void           exitGame();
+  static WINDOW*        getWindow(WindowType window_type);
+  static unsigned short getColor(std::string color_name) { return color_map_[color_name]; }
+  static RGBColor       parseColorHex(std::string color_hex);
 };

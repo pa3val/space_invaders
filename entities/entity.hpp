@@ -1,7 +1,7 @@
 #pragma once
 #include "constants.hpp"
 
-#include <ncurses.h>
+#include <curses.h>
 #include <vector>
 
 class Entity
@@ -13,6 +13,7 @@ private:
 
 public:
   Entity();
+  virtual ~Entity() = default;
   virtual void                          update(short delta_x, short delta_y);
   int                                   getPosX() const { return pos_x_; }
   int                                   getPosY() const { return pos_y_; }
