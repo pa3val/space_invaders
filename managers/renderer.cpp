@@ -142,7 +142,6 @@ void Renderer::drawEntity(const Entity& entity, WindowType window_type)
     }
   }
   wattroff(window, COLOR_PAIR(color));
-  delete current_frame;
 }
 
 void Renderer::refreshWindow(WindowType window_type)
